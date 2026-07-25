@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Session Results — PEARL</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
+  <script defer src="script.js"></script>
+  <link rel="icon" href="Venus.ico">
+  <style>
+    /* WINDOWS 7 / NATIVE DESKTOP THEME */
+    :root {
+      --win-bg: #d4d0c8;
+      --win-btn-bg: linear-gradient(180deg, #f2f2f2 0%, #e0e0e0 50%, #d4d4d4 50%, #e6e6e6 100%);
+      --win-btn-border: #707070;
+      --win-btn-hover: linear-gradient(180deg, #eaf6fd 0%, #d9f0fc 50%, #bee6fd 50%, #a7d9f5 100%);
+      --win-highlight: #003399;
+    }
+
+    body {
+      background: #808080;
+      font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+      font-size: 12px;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      overflow: auto;
+      padding: 20px;
+    }
+
+    .win-dialog {
+      background: #f0f0f0;
+      border: 1px solid #111;
+      box-shadow: 0 4px 25px rgba(0, 0, 0, 0.6);
+      width: 100%;
+      max-width: 800px;
+      border-radius: 6px 6px 0 0;
+      overflow: hidden;
+    }
+
+    .win-dialog-titlebar {
+      background: linear-gradient(180deg, #95b3d7 0%, #547cc4 50%, #3e68b8 50%, #5c85cc 100%);
+      color: white;
+      padding: 6px 10px;
+      font-weight: bold;
+      font-size: 13px;
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 1px solid #111;
+    }
+
+    .win-dialog-content {
+      padding: 20px;
+      background: #f0f0f0;
+      border-top: 1px solid #fff;
+    }
+
+    .win-panel {
+      background: #fff;
+      border: 1px solid #999;
+      box-shadow: inset 1px 1px 3px rgba(0, 0, 0, 0.05);
+      padding: 15px;
+      margin-bottom: 20px;
+    }
+
+    .panel-header {
+      font-size: 14px;
+      font-weight: bold;
+      color: var(--win-highlight);
+      margin-bottom: 15px;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 5px;
+    }
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .kpi-box {
+      border: 1px solid #b0b0b0;
+      background: #fafafa;
+      padding: 10px;
+      text-align: center;
+      box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+    }
+
+    .kpi-label {
+      font-size: 10px;
+      color: #666;
+      text-transform: uppercase;
+      font-weight: bold;
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    .kpi-value {
+      font-size: 16px;
+      font-weight: bold;
+      color: #000;
+      font-family: "Courier New", monospace;
+    }
+
+    .chart-container {
+      height: 250px;
+      background: #fff;
+      border: 1px solid #999;
+      padding: 10px;
+      margin-bottom: 20px;
+    }
+
+    /* ML Hero Card */
+    .ml-card {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      padding: 15px;
+      background: #ffffe0;
+      border: 1px solid #e5e500;
+    }
+
+    .ml-card.promote {
+      background: #e8f5e9;
+      border-color: #a5d6a7;
+    }
+
+    .ml-card.demote {
+      background: #ffebee;
+      border-color: #ffcdd2;
+    }
+
+    .ml-card.maintain {
+      background: #e3f2fd;
+      border-color: #90caf9;
+    }
+
+    .ml-icon {
+      width: 32px;
+      height: 32px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .ml-title {
+      font-weight: bold;
+      font-size: 15px;
+      margin-bottom: 4px;
+    }
+
+    .ml-desc {
+      color: #444;
+      font-size: 12px;
+    }
+
+    .win-btn {
+      background: var(--win-btn-bg);
+      border: 1px solid var(--win-btn-border);
+      padding: 6px 25px;
+      border-radius: 3px;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8), 0 1px 1px rgba(0, 0, 0, 0.1);
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 12px;
+      color: #000;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .win-btn:hover {
+      background: var(--win-btn-hover);
+      border-color: #3c7fb1;
+    }
+
+    .win-btn:active {
+      background: linear-gradient(180deg, #d4d4d4 0%, #e0e0e0 100%);
+      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
+    }
+
+    .btn-primary {
+      border-color: #3c7fb1;
+      font-weight: bold;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 15px;
+      justify-content: flex-end;
+      border-top: 1px solid #ccc;
+      padding-top: 15px;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+
+<body data-page="result">
+
+  <div class="win-dialog">
+    <div class="win-dialog-titlebar">
+      <span>PEARL Clinical Analytics Report</span>
+      <span onclick="window.location.href='dashboard.html'" style="font-family: Webdings; cursor: pointer;"
+        title="Close">r</span>
+    </div>
+
+    <div class="win-dialog-content">
+
+      <div style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: flex-end;">
+        <div>
+          <h2 id="summaryTitle" style="margin: 0; font-size: 18px; color: var(--win-highlight);">Therapy Session
+            Complete</h2>
+          <div id="levelPlayedDisplay" style="color: #666; margin-top: 5px;">Level Played: 1</div>
+        </div>
+      </div>
+
+      <div class="kpi-grid">
+        <div class="kpi-box">
+          <span class="kpi-label">Avg Time</span>
+          <span class="kpi-value" id="averageReaction">—</span>
+        </div>
+        <div class="kpi-box">
+          <span class="kpi-label">Best Time</span>
+          <span class="kpi-value" id="bestReaction">—</span>
+        </div>
+        <div class="kpi-box" style="border-color: #90caf9; background: #e3f2fd;">
+          <span class="kpi-label" style="color: #0d47a1;">Accuracy</span>
+          <span class="kpi-value" id="summaryAccuracy" style="color: #0d47a1;">—</span>
+        </div>
+        <div class="kpi-box" style="border-color: #a5d6a7; background: #e8f5e9;">
+          <span class="kpi-label" style="color: #1b5e20;">Hits / Total</span>
+          <span class="kpi-value" style="color: #1b5e20;"><span id="summaryHits">—</span> / <span
+              id="summaryTotal">—</span></span>
+        </div>
+        <div class="kpi-box">
+          <span class="kpi-label">Total Time</span>
+          <span class="kpi-value" id="totalTimeDisplay">—</span>
+        </div>
+      </div>
+
+      <div class="chart-container">
+        <canvas id="reactionChart"></canvas>
+      </div>
+
+      <div id="mlDecisionCard" class="ml-card">
+        <div class="ml-icon" id="mlHeroIcon">
+          <svg viewBox="0 0 24 24" fill="none" width="24" height="24" stroke="currentColor" stroke-width="2">
+            <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" />
+            <path d="M12 8v4l3 3" />
+          </svg>
+        </div>
+        <div>
+          <div style="font-size: 10px; font-weight: bold; color: #666; margin-bottom: 2px;">AI CLINICAL DECISION</div>
+          <div class="ml-title" id="recTitle">Evaluating Data...</div>
+          <div class="ml-desc" id="recDesc">Calculating recommended next steps based on performance.</div>
+        </div>
+      </div>
+
+      <div class="btn-row"
+        style="background: #e6e6e6; margin: 20px -20px -20px -20px; padding: 15px 20px; border-top: 1px solid #ccc; display: flex; justify-content: space-between; align-items: center;">
+        <a href="dashboard.html" id="goHomeButton" class="win-btn" style="color: #c00; font-weight: bold;">
+          <svg viewBox="0 0 24 24" fill="none" width="14" height="14" stroke="currentColor" stroke-width="2"
+            style="margin-right:5px;">
+            <path d="M18 6L6 18M6 6l12 12"></path>
+          </svg>
+          Close Session
+        </a>
+        <div style="display: flex; gap: 10px;">
+          <button id="playAgainBtn" class="win-btn">
+            <svg viewBox="0 0 24 24" fill="none" width="14" height="14" stroke="currentColor" stroke-width="2"
+              style="margin-right:5px;">
+              <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.92-10.24l5.66 5.66"></path>
+            </svg>
+            Restart Level
+          </button>
+          <button id="nextLevelBtn" class="win-btn" style="display: none;">Next Level</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</body>
+
+</html>

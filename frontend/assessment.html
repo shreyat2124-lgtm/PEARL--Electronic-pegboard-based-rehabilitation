@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Patient Assessment — PEARL</title>
+  <meta name="description" content="Pre-session clinical assessment for level assignment." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;1,14..32,400&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" href="Venus.ico">
+  <script defer src="script.js"></script>
+</head>
+
+<body data-page="assessment">
+  <div class="home-layout">
+    <aside class="home-sidebar">
+      <div class="sidebar-inner">
+        <div class="pearl-logo">
+          <svg viewBox="0 0 48 48" fill="none" aria-label="PEARL logo">
+            <rect x="4" y="4" width="14" height="14" rx="4" fill="white" opacity="0.95" />
+            <rect x="30" y="4" width="14" height="14" rx="4" fill="white" opacity="0.70" />
+            <rect x="4" y="30" width="14" height="14" rx="4" fill="white" opacity="0.70" />
+            <rect x="30" y="30" width="14" height="14" rx="4" fill="white" opacity="0.45" />
+            <circle cx="24" cy="24" r="6" fill="white" />
+          </svg>
+        </div>
+        <p class="sidebar-product">PEARL</p>
+        <p class="sidebar-tagline">Clinical Assessment</p>
+        <div class="sidebar-divider"></div>
+        <p class="sidebar-note">Evaluate patient status to determine the appropriate therapy level.</p>
+      </div>
+    </aside>
+
+    <main class="home-main" style="max-width: 800px; padding-top: 60px; padding-bottom: 60px; overflow-y: auto;">
+      <section class="home-hero" style="margin-bottom: 24px;">
+        <p class="section-label">ASSESSMENT</p>
+        <h1 id="heroTitle">Pre-Session Evaluation</h1>
+      </section>
+
+      <form id="assessmentForm" class="assessment-form">
+        <div class="assessment-card">
+          <h3 class="assessment-q-title">1. Hand Tremor Severity</h3>
+          <div class="assessment-options">
+            <label class="a-radio"><input type="radio" name="q1" value="0" required><span>None</span></label>
+            <label class="a-radio"><input type="radio" name="q1" value="1"><span>Mild</span></label>
+            <label class="a-radio"><input type="radio" name="q1" value="2"><span>Moderate</span></label>
+            <label class="a-radio"><input type="radio" name="q1" value="3"><span>Severe</span></label>
+          </div>
+        </div>
+
+        <div class="assessment-card">
+          <h3 class="assessment-q-title">2. Grip Strength</h3>
+          <div class="assessment-options">
+            <label class="a-radio"><input type="radio" name="q2" value="0" required><span>Normal</span></label>
+            <label class="a-radio"><input type="radio" name="q2" value="1"><span>Slightly weak</span></label>
+            <label class="a-radio"><input type="radio" name="q2" value="2"><span>Weak</span></label>
+            <label class="a-radio"><input type="radio" name="q2" value="3"><span>Very weak</span></label>
+          </div>
+        </div>
+
+        <div class="assessment-card">
+          <h3 class="assessment-q-title">3. Reaction Speed (Observation)</h3>
+          <div class="assessment-options">
+            <label class="a-radio"><input type="radio" name="q3" value="0" required><span>Fast</span></label>
+            <label class="a-radio"><input type="radio" name="q3" value="1"><span>Moderate</span></label>
+            <label class="a-radio"><input type="radio" name="q3" value="2"><span>Slow</span></label>
+            <label class="a-radio"><input type="radio" name="q3" value="3"><span>Very slow</span></label>
+          </div>
+        </div>
+
+        <div class="assessment-card">
+          <h3 class="assessment-q-title">4. Hand Coordination</h3>
+          <div class="assessment-options">
+            <label class="a-radio"><input type="radio" name="q4" value="0" required><span>Normal</span></label>
+            <label class="a-radio"><input type="radio" name="q4" value="1"><span>Slight difficulty</span></label>
+            <label class="a-radio"><input type="radio" name="q4" value="2"><span>Poor</span></label>
+            <label class="a-radio"><input type="radio" name="q4" value="3"><span>Cannot coordinate</span></label>
+          </div>
+        </div>
+
+        <div class="assessment-card">
+          <h3 class="assessment-q-title">5. Cognitive Ability</h3>
+          <div class="assessment-options">
+            <label class="a-radio"><input type="radio" name="q5" value="0" required><span>Normal</span></label>
+            <label class="a-radio"><input type="radio" name="q5" value="1"><span>Slight difficulty</span></label>
+            <label class="a-radio"><input type="radio" name="q5" value="2"><span>Moderate</span></label>
+            <label class="a-radio"><input type="radio" name="q5" value="3"><span>Severe</span></label>
+          </div>
+        </div>
+
+        <div class="assessment-result-card" id="resultCard" hidden>
+          <div class="result-score-wrap">
+            <span class="result-score-label">Suggested Level</span>
+            <strong class="result-score-value" id="suggestedLevelDisplay">Level 1</strong>
+            <p class="result-score-note" id="suggestedLevelNote">Sequential Targeting</p>
+          </div>
+          <div class="result-override-wrap">
+            <label for="overrideLevel" class="override-label">Doctor Override:</label>
+            <select id="overrideLevel" class="override-select">
+              <option value="auto" selected>Accept Suggested Level</option>
+              <option value="0">Level 0 — Orientation</option>
+              <option value="1">Level 1 — Sequential</option>
+              <option value="2">Level 2 — Random Targets</option>
+              <option value="3">Level 3 — Memory</option>
+              <option value="4">Level 4 — Bilateral Coordination</option>
+              <option value="5">Level 5 — Peak Performance</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="cta-row" style="margin-top: 24px;">
+          <button type="submit" id="startTherapyBtn" class="cta-button cta-button--primary" disabled>
+            Start Therapy
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" style="margin-left:4px;">
+              <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round" />
+            </svg>
+          </button>
+          <a href="index.html" class="cta-button cta-button--secondary">Cancel</a>
+        </div>
+      </form>
+    </main>
+  </div>
+</body>
+
+</html>

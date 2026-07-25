@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Therapy Session — PEARL</title>
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
+  <script defer src="script.js"></script>
+  <link rel="icon" href="Venus.ico">
+  <style>
+    /* WINDOWS 7 / NATIVE DESKTOP THEME */
+    :root {
+      --win-bg: #d4d0c8;
+      --win-btn-bg: linear-gradient(180deg, #f2f2f2 0%, #e0e0e0 50%, #d4d4d4 50%, #e6e6e6 100%);
+      --win-btn-border: #707070;
+      --win-btn-hover: linear-gradient(180deg, #eaf6fd 0%, #d9f0fc 50%, #bee6fd 50%, #a7d9f5 100%);
+      --win-highlight: #003399;
+    }
+
+    body {
+      background: #000;
+      font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+      font-size: 12px;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .therapy-layout {
+      width: 100vw;
+      height: 100vh;
+      background: #f0f0f0;
+      display: flex;
+      flex-direction: column;
+      box-sizing: border-box;
+      border: 1px solid #111;
+    }
+
+    .win-dialog-titlebar {
+      background: linear-gradient(180deg, #95b3d7 0%, #547cc4 50%, #3e68b8 50%, #5c85cc 100%);
+      color: white;
+      padding: 6px 10px;
+      font-weight: bold;
+      font-size: 13px;
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #111;
+    }
+
+    .t-topbar {
+      height: 44px;
+      background: linear-gradient(180deg, #f5f9ff 0%, #e0ebf8 100%);
+      border-bottom: 1px solid #aebfd0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 15px;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    }
+
+    .t-status-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #fff;
+      border: 1px solid #a0a0a0;
+      padding: 4px 10px;
+      border-radius: 2px;
+      font-weight: bold;
+      color: #333;
+    }
+
+    .t-status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #999;
+      box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.5);
+    }
+
+    .t-status-dot.active {
+      background: #00cc00;
+      box-shadow: 0 0 5px #00ff00, inset 0 1px 2px rgba(0, 0, 0, 0.5);
+    }
+
+    .t-meta {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      background: #fff;
+      border: 1px solid #a0a0a0;
+      padding: 4px 15px;
+      box-shadow: inset 1px 1px 2px rgba(0, 0, 0, 0.1);
+    }
+
+    .t-stat {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .t-stat-label {
+      color: #666;
+      text-transform: uppercase;
+      font-size: 10px;
+      font-weight: bold;
+    }
+
+    .t-stat-value {
+      font-size: 14px;
+      font-weight: bold;
+      font-family: "Courier New", monospace;
+      color: var(--win-highlight);
+    }
+
+    .t-stat-divider {
+      width: 1px;
+      height: 14px;
+      background: #ccc;
+    }
+
+    .win-btn {
+      background: var(--win-btn-bg);
+      border: 1px solid var(--win-btn-border);
+      padding: 5px 15px;
+      border-radius: 3px;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8), 0 1px 1px rgba(0, 0, 0, 0.1);
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 12px;
+      color: #000;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .win-btn:hover {
+      background: var(--win-btn-hover);
+      border-color: #3c7fb1;
+    }
+
+    .win-btn:active {
+      background: linear-gradient(180deg, #d4d4d4 0%, #e0e0e0 100%);
+      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
+    }
+
+    .btn-danger {
+      color: #cc0000;
+      font-weight: bold;
+    }
+
+    /* Grid Area */
+    .t-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #808080;
+      /* Classic dark grey desktop background */
+      padding: 20px;
+    }
+
+    .t-grid-wrap {
+      width: 100%;
+      max-width: 75vh;
+      aspect-ratio: 1;
+      background: #111;
+      border: 4px solid #a0a0a0;
+      border-radius: 8px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(0, 0, 0, 0.8);
+      padding: 20px;
+      box-sizing: border-box;
+    }
+
+    .grid-board {
+      width: 100%;
+      height: 100%;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      grid-template-rows: repeat(4, 1fr);
+      gap: 10px;
+    }
+
+    /* Hardware pegs */
+    .therapy-cell {
+      background: #222;
+      border-radius: 50%;
+      border: 2px solid #444;
+      box-shadow: inset 0 4px 10px rgba(0, 0, 0, 0.8);
+      position: relative;
+      transition: all 0.1s;
+    }
+
+    .therapy-cell::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 40%;
+      height: 40%;
+      border-radius: 50%;
+      background: #111;
+      box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.9);
+    }
+
+    .therapy-cell.is-target {
+      background: #333;
+      border-color: #555;
+    }
+
+    .therapy-cell.is-target::after {
+      background: #ff0000;
+      box-shadow: 0 0 15px #ff0000, 0 0 30px #ff0000;
+    }
+
+    .therapy-cell.is-hit::after {
+      animation: flashHit 0.4s ease-out;
+    }
+
+    .therapy-cell.is-wrong {
+      animation: flashWrong 0.3s ease-out;
+    }
+
+    @keyframes flashHit {
+      0% {
+        background: #00ff00;
+        box-shadow: 0 0 15px #00ff00, 0 0 30px #00ff00;
+      }
+
+      100% {
+        background: #111;
+        box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.9);
+      }
+    }
+
+    @keyframes flashWrong {
+      0% {
+        background: #ff0000;
+      }
+
+      100% {
+        background: #222;
+      }
+    }
+
+    /* Reaction Bar */
+    .t-reaction-row {
+      width: 100%;
+      max-width: 75vh;
+      margin-top: 20px;
+      background: #f0f0f0;
+      border: 1px solid #a0a0a0;
+      padding: 10px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+    }
+
+    .t-reaction-bar-track {
+      flex: 1;
+      height: 12px;
+      background: #fff;
+      border: 1px solid #999;
+      box-shadow: inset 1px 1px 3px rgba(0, 0, 0, 0.2);
+    }
+
+    .t-reaction-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #00ff00 0%, #ffff00 70%, #ff0000 100%);
+      transition: width 0.1s linear;
+    }
+
+    .t-reaction-label {
+      font-family: Tahoma;
+      font-weight: bold;
+      color: #333;
+      min-width: 50px;
+      text-align: right;
+    }
+
+    /* Modal */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 999;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-overlay.is-open {
+      display: flex;
+    }
+
+    .win-panel {
+      background: #fff;
+      border: 1px solid #999;
+      box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+      margin: 0;
+      width: 380px;
+    }
+
+    .win-panel-title {
+      background: linear-gradient(90deg, #d9e4f1 0%, #ffffff 100%);
+      padding: 8px 12px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--win-highlight);
+      border-bottom: 1px solid #eee;
+    }
+
+    .win-panel-body {
+      padding: 20px;
+    }
+
+    /* Loading Overlay */
+    .win-progress {
+      width: 100%;
+      height: 16px;
+      border: 1px solid #999;
+      background: #e6e6e6;
+      position: relative;
+      overflow: hidden;
+      box-shadow: inset 1px 1px 2px rgba(0, 0, 0, 0.1);
+    }
+
+    .win-progress-bar {
+      height: 100%;
+      width: 40%;
+      background: linear-gradient(90deg, #51cf5c 0%, #30b33b 100%);
+      box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.6);
+      animation: winMarquee 1.5s infinite linear;
+    }
+
+    @keyframes winMarquee {
+      0% {
+        transform: translateX(-100%);
+      }
+
+      100% {
+        transform: translateX(250%);
+      }
+    }
+  </style>
+</head>
+
+<body data-page="therapy">
+
+  <div class="therapy-layout">
+    <div class="win-dialog-titlebar">
+      <span>PEARL Therapy Executable — Clinical Mode</span>
+      <span style="font-family: Webdings; font-weight: normal; font-size: 14px;">0 1 r</span>
+    </div>
+
+    <header class="t-topbar" aria-label="Session header">
+      <div class="t-status-badge">
+        <span class="t-status-dot" id="statusDot"></span>
+        <span id="sessionStatus">Hardware Initializing...</span>
+      </div>
+
+      <nav class="t-meta">
+        <div class="t-stat">
+          <span class="t-stat-label">Accuracy</span>
+          <span class="t-stat-value" id="liveAccuracy">100%</span>
+        </div>
+        <div class="t-stat-divider"></div>
+        <div class="t-stat">
+          <span class="t-stat-label">Hits</span>
+          <span class="t-stat-value" id="hitScore" style="color: #008800;">0</span>
+        </div>
+        <div class="t-stat-divider"></div>
+        <div class="t-stat">
+          <span class="t-stat-label">Last RT</span>
+          <span class="t-stat-value" id="lastRT">—</span>
+        </div>
+      </nav>
+
+      <div style="display: flex; gap: 10px;">
+        <button id="abortSessionBtn" class="win-btn btn-danger">X Abort Session</button>
+        <button id="nextLevelBtn" class="win-btn" style="font-weight: bold; border-color: #3c7fb1;" hidden>Next Level
+          ></button>
+      </div>
+    </header>
+
+    <main class="t-body">
+      <div class="t-grid-wrap">
+        <div class="grid-board" id="therapyGrid"></div>
+      </div>
+
+      <div class="t-reaction-row" id="reactionBarWrap" aria-hidden="true">
+        <span style="font-weight: bold; color: #666; font-size: 10px; text-transform: uppercase;">Reaction Time</span>
+        <div class="t-reaction-bar-track">
+          <div class="t-reaction-bar-fill" id="reactionBarFill"></div>
+        </div>
+        <span class="t-reaction-label" id="reactionBarLabel">—</span>
+      </div>
+    </main>
+
+    <!-- Skip Level Modal -->
+    <div class="modal-overlay" id="skipModal">
+      <div class="win-panel">
+        <div class="win-panel-title">System Prompt</div>
+        <div class="win-panel-body">
+          <div style="margin-bottom: 20px; display: flex; gap: 15px;">
+            <svg viewBox="0 0 24 24" fill="none" width="32" height="32" stroke="#cc0000" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <path d="M12 8v4"></path>
+              <path d="M12 16h.01"></path>
+            </svg>
+            <div>
+              <div style="font-weight: bold; margin-bottom: 5px;">Advance Protocol?</div>
+              <div style="color: #444;">Are you sure you want to promote the patient to Level 1?</div>
+            </div>
+          </div>
+          <div style="text-align: right; border-top: 1px solid #ccc; padding-top: 15px; margin-top: 10px;">
+            <button id="cancelSkipBtn" class="win-btn">Cancel</button>
+            <button id="confirmSkipBtn" class="win-btn primary" style="margin-left: 8px;">Confirm</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</body>
+
+</html>

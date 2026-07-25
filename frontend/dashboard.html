@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PEARL Clinical Portal</title>
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
+  <script defer src="script.js"></script>
+  <link rel="icon" href="Venus.ico">
+  <style>
+    /* WINDOWS 7 / NATIVE DESKTOP THEME */
+    :root {
+      --win-bg: #d4d0c8;
+      --win-border: #8e8f8f;
+      --win-panel: #ffffff;
+      --win-title-bg: linear-gradient(180deg, #e4effb 0%, #c4ddfc 100%);
+      --win-btn-bg: linear-gradient(180deg, #f2f2f2 0%, #e0e0e0 50%, #d4d4d4 50%, #e6e6e6 100%);
+      --win-btn-border: #707070;
+      --win-btn-hover: linear-gradient(180deg, #eaf6fd 0%, #d9f0fc 50%, #bee6fd 50%, #a7d9f5 100%);
+      --win-btn-hover-border: #3c7fb1;
+      --win-text: #000000;
+      --win-highlight: #003399;
+    }
+
+    body {
+      background: #f0f0f0;
+      font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+      font-size: 12px;
+      color: var(--win-text);
+      margin: 0;
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* Navigation Sidebar */
+    .app-sidebar {
+      width: 220px;
+      flex-shrink: 0;
+      background: #ffffff;
+      border-right: 1px solid var(--win-border);
+      display: flex;
+      flex-direction: column;
+      box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);
+      z-index: 10;
+    }
+
+    .sidebar-header {
+      padding: 15px 15px 25px 15px;
+      background: linear-gradient(180deg, #f9fbfd 0%, #d1e4f9 100%);
+      border-bottom: 1px solid #99b4d1;
+    }
+
+    .sidebar-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--win-highlight);
+      text-shadow: 1px 1px 0px #fff;
+    }
+
+    .sidebar-nav {
+      padding: 10px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      color: #333;
+      text-decoration: none;
+      border: 1px solid transparent;
+      border-radius: 3px;
+      font-size: 13px;
+    }
+
+    .nav-item:hover {
+      background: #e5f3fb;
+      border-color: #70c0e7;
+    }
+
+    .nav-item.active {
+      background: #cce8ff;
+      border-color: #99d1ff;
+      color: #000;
+    }
+
+    .sidebar-footer {
+      padding: 15px;
+      border-top: 1px solid #e0e0e0;
+      background: #f9f9f9;
+      font-size: 11px;
+    }
+
+    /* Main Area */
+    .app-main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: #f5f6f7;
+    }
+
+    /* Standard Windows Toolbar */
+    .toolbar {
+      height: 44px;
+      background: linear-gradient(180deg, #f5f9ff 0%, #e0ebf8 100%);
+      border-bottom: 1px solid #aebfd0;
+      display: flex;
+      align-items: center;
+      padding: 0 15px;
+      gap: 15px;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    }
+
+    .toolbar-divider {
+      width: 1px;
+      height: 24px;
+      background: #aebfd0;
+      border-right: 1px solid #fff;
+    }
+
+    .content-area {
+      padding: 20px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    /* Panels */
+    .win-panel {
+      background: #fff;
+      border: 1px solid #999;
+      box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+      margin-bottom: 20px;
+    }
+
+    .win-panel-title {
+      background: linear-gradient(90deg, #d9e4f1 0%, #ffffff 100%);
+      padding: 8px 12px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--win-highlight);
+      border-bottom: 1px solid #eee;
+    }
+
+    .win-panel-body {
+      padding: 15px;
+    }
+
+    /* KPIs */
+    .win-kpi-wrap {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 15px;
+    }
+
+    .win-kpi {
+      flex: 1;
+      padding: 15px;
+      background: linear-gradient(180deg, #ffffff 0%, #f0f0f0 100%);
+      border: 1px solid #ccc;
+      border-radius: 2px;
+      box-shadow: inset 0 1px 0 #fff;
+    }
+
+    .win-kpi-label {
+      font-size: 11px;
+      color: #666;
+      text-transform: uppercase;
+      margin-bottom: 5px;
+    }
+
+    .win-kpi-val {
+      font-size: 24px;
+      font-family: "Segoe UI", sans-serif;
+      color: var(--win-highlight);
+    }
+
+    /* Buttons */
+    .win-btn {
+      background: var(--win-btn-bg);
+      border: 1px solid var(--win-btn-border);
+      padding: 5px 15px;
+      border-radius: 3px;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8), 0 1px 1px rgba(0, 0, 0, 0.1);
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 12px;
+      color: #000;
+      text-decoration: none;
+      display: inline-block;
+      text-align: center;
+    }
+
+    .win-btn:hover {
+      background: var(--win-btn-hover);
+      border-color: var(--win-btn-hover-border);
+    }
+
+    .win-btn:active {
+      background: linear-gradient(180deg, #d4d4d4 0%, #e0e0e0 100%);
+      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
+    }
+
+    .win-btn.primary {
+      border-color: #3c7fb1;
+      font-weight: bold;
+    }
+
+    /* Table */
+    .win-table-container {
+      border: 1px solid #a0a0a0;
+      background: #fff;
+      height: 400px;
+      overflow-y: scroll;
+    }
+
+    .win-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+
+    .win-table th {
+      background: linear-gradient(180deg, #fcfcfc 0%, #e8e8e8 100%);
+      border-bottom: 1px solid #a0a0a0;
+      border-right: 1px solid #d0d0d0;
+      padding: 6px 10px;
+      text-align: left;
+      font-weight: normal;
+      position: sticky;
+      top: 0;
+      box-shadow: inset 1px 1px 0 #fff;
+    }
+
+    .win-table td {
+      border-bottom: 1px solid #ebebeb;
+      border-right: 1px solid #ebebeb;
+      padding: 8px 10px;
+      vertical-align: middle;
+    }
+
+    .win-table tr:hover {
+      background: #e5f3fb;
+    }
+
+    /* Badges */
+    .badge {
+      display: inline-block;
+      padding: 2px 6px;
+      background: #e0e0e0;
+      border: 1px solid #ccc;
+      border-radius: 2px;
+      font-size: 11px;
+    }
+
+    .badge-good {
+      background: #dff0d8;
+      border-color: #d6e9c6;
+      color: #3c763d;
+    }
+
+    .badge-bad {
+      background: #f2dede;
+      border-color: #ebccd1;
+      color: #a94442;
+    }
+
+    .badge-warn {
+      background: #fcf8e3;
+      border-color: #faebcc;
+      color: #8a6d3b;
+    }
+
+    .badge-level {
+      background: #e8f4f8;
+      border-color: #bce8f1;
+      color: #31708f;
+      font-weight: bold;
+    }
+
+    /* Progress Bar */
+    .win-progress {
+      width: 100%;
+      height: 18px;
+      border: 1px solid #999;
+      background: #e6e6e6;
+      position: relative;
+      overflow: hidden;
+      box-shadow: inset 1px 1px 2px rgba(0, 0, 0, 0.1);
+      margin-bottom: 10px;
+    }
+
+    .win-progress-bar {
+      height: 100%;
+      width: 40%;
+      background: linear-gradient(90deg, #51cf5c 0%, #30b33b 100%);
+      box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.6);
+      animation: winMarquee 1.5s infinite linear;
+    }
+
+    @keyframes winMarquee {
+      0% {
+        transform: translateX(-100%);
+      }
+
+      100% {
+        transform: translateX(250%);
+      }
+    }
+  </style>
+</head>
+
+<body data-page="dashboard">
+
+  <!-- Sidebar Navigation -->
+  <aside class="app-sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-title">PEARL Medical System</div>
+      <div style="font-size: 11px; color: #666; margin-top: 2px;">Database Version 4.2.1</div>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="dashboard.html" class="nav-item active">
+        <svg viewBox="0 0 24 24" fill="none" width="16" height="16" stroke="currentColor" stroke-width="2">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+          <circle cx="9" cy="7" r="4"></circle>
+        </svg>
+        Patient Directory
+      </a>
+      <a href="data.html" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" width="16" height="16" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="7 10 12 15 17 10"></polyline>
+        </svg>
+        Dataset Export
+      </a>
+      <a href="manage_patients.html" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" width="16" height="16" stroke="currentColor" stroke-width="2">
+          <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+          <circle cx="8.5" cy="7" r="4"></circle>
+          <line x1="20" y1="8" x2="20" y2="14"></line>
+          <line x1="23" y1="11" x2="17" y2="11"></line>
+        </svg>
+        Patient Management
+      </a>
+      <a href="#" class="nav-item" id="connectionStatus">
+        <svg viewBox="0 0 24 24" fill="none" width="16" height="16" stroke="currentColor" stroke-width="2">
+          <path d="M5 12.55a11 11 0 0 1 14.08 0"></path>
+          <path d="M1.42 9a16 16 0 0 1 21.16 0"></path>
+        </svg>
+        <span id="connectionStatusText">COM Port: Disconnected</span>
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <div>Active User:</div>
+      <div id="docEmail" style="font-weight: bold; margin-bottom: 10px; word-break: break-all;">Loading...</div>
+      <button id="logoutBtn" class="win-btn" style="width: 100%;">Sign Out</button>
+    </div>
+  </aside>
+
+  <!-- Main View -->
+  <main class="app-main">
+    <div class="toolbar">
+      <a href="new_patient.html" class="win-btn primary">
+        <span style="color: green; font-weight: bold;">+</span> New Registration
+      </a>
+      <div class="toolbar-divider"></div>
+      <a href="data.html" class="win-btn">Export CSV</a>
+    </div>
+
+    <div class="content-area">
+      <!-- Database Summary Panel -->
+      <div class="win-panel">
+        <div class="win-panel-title">System Metrics</div>
+        <div class="win-panel-body">
+          <div class="win-kpi-wrap">
+            <div class="win-kpi">
+              <div class="win-kpi-label">Registered Patients</div>
+              <div class="win-kpi-val" id="kpiPatients">0</div>
+            </div>
+            <div class="win-kpi">
+              <div class="win-kpi-label">Total Sessions Captured</div>
+              <div class="win-kpi-val" id="kpiSessions">0</div>
+            </div>
+            <div class="win-kpi" style="background: #eaf6fd;">
+              <div class="win-kpi-label">Hardware Status</div>
+              <div class="win-kpi-val" id="kpiConnText" style="font-size: 16px; margin-top: 5px;">Pending Check...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Patient Table Panel -->
+      <div class="win-panel" style="flex: 1; display: flex; flex-direction: column;">
+        <div class="win-panel-title">Patient Records Directory</div>
+        <div class="win-panel-body" style="padding: 10px;">
+          <div class="win-table-container">
+            <table class="win-table">
+              <thead>
+                <tr>
+                  <th>Patient Name & ID</th>
+                  <th>Clinical Condition</th>
+                  <th>Protocol Level</th>
+                  <th>Total Sessions</th>
+                  <th>Recent Accuracies</th>
+                  <th>Avg RT (Sec)</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="patientTableBody">
+                <tr>
+                  <td colspan="7" style="text-align:center; padding: 40px; color:#666;">Querying database...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Connection Modal -->
+  <div id="connectModal"
+    style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 999; align-items: center; justify-content: center;">
+    <div class="win-panel" style="width: 380px; margin: 0;">
+      <div class="win-panel-title">Hardware Setup Wizard</div>
+      <div class="win-panel-body" style="padding: 20px;">
+
+        <div id="connectStep1">
+          <div style="margin-bottom: 20px; display: flex; gap: 15px;">
+            <svg viewBox="0 0 24 24" fill="none" width="40" height="40" stroke="#003399" stroke-width="1.5">
+              <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+              <path d="M12 16v4"></path>
+              <path d="M8 20h8"></path>
+            </svg>
+            <div>
+              <div style="font-weight: bold; margin-bottom: 5px;">Connect PEARL Device</div>
+              <div style="color: #444;">Please ensure the PEARL board is connected to your PC via USB. Click Next to
+                select the COM Port.</div>
+            </div>
+          </div>
+          <div style="text-align: right; border-top: 1px solid #ccc; padding-top: 15px; margin-top: 10px;">
+            <button id="cancelConnectBtn" class="win-btn">Cancel</button>
+            <button id="confirmConnectBtn" class="win-btn primary" style="margin-left: 8px;">Next ></button>
+          </div>
+        </div>
+
+        <div id="connectStep2" style="display: none; text-align: center; padding: 10px 0;">
+          <svg viewBox="0 0 24 24" fill="none" width="40" height="40" stroke="#3c7fb1" stroke-width="1.5"
+            style="margin-bottom: 15px;">
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="M12 6v6l4 2"></path>
+          </svg>
+          <div style="font-weight: bold; margin-bottom: 15px;">Waiting for COM Port Handshake...</div>
+          <div class="win-progress">
+            <div class="win-progress-bar"></div>
+          </div>
+          <div style="color: #666; font-size: 11px;">Please authorize the serial port prompt in your browser.</div>
+        </div>
+
+        <div id="connectStep3" style="display: none; text-align: center; padding: 15px 0;">
+          <svg viewBox="0 0 24 24" fill="none" width="48" height="48" stroke="#2e7d32" stroke-width="2">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+          </svg>
+          <div style="margin-top: 15px; font-weight: bold; color: #1b5e20;">Connection Established!</div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Disconnect Modal -->
+  <div id="disconnectModal"
+    style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 999; align-items: center; justify-content: center;">
+    <div class="win-panel"
+      style="width: 380px; margin: 0; border: 1px solid #111; box-shadow: 0 4px 20px rgba(0,0,0,0.4); border-radius: 4px 4px 0 0; overflow: hidden;">
+      <div class="win-panel-title"
+        style="background: linear-gradient(180deg, #95b3d7 0%, #547cc4 50%, #3e68b8 50%, #5c85cc 100%); color: white; display: flex; justify-content: space-between; border-bottom: 1px solid #111;">
+        <span>Hardware Configuration</span>
+        <span onclick="document.getElementById('disconnectModal').style.display='none'"
+          style="font-family: Webdings; cursor: pointer;">r</span>
+      </div>
+      <div class="win-panel-body" style="background: #f0f0f0; padding: 20px;">
+        <div style="margin-bottom: 20px; display: flex; gap: 15px;">
+          <svg viewBox="0 0 24 24" fill="none" width="40" height="40" stroke="#cc0000" stroke-width="1.5">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+            <line x1="12" y1="9" x2="12" y2="13"></line>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+          </svg>
+          <div>
+            <div style="font-weight: bold; margin-bottom: 5px;">Disconnect PEARL Device?</div>
+            <div style="color: #444;">This will safely terminate the active serial connection to the hardware. Any
+              unsaved therapy data on the board may be lost.</div>
+          </div>
+        </div>
+        <div style="text-align: right; border-top: 1px solid #ccc; padding-top: 15px; margin-top: 10px;">
+          <button onclick="document.getElementById('disconnectModal').style.display='none'"
+            class="win-btn">Cancel</button>
+          <button id="confirmDisconnectBtn" class="win-btn danger" style="margin-left: 8px;">Disconnect</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</body>
+
+</html>

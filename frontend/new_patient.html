@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>New Patient — PEARL</title>
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
+  <script defer src="script.js"></script>
+  <link rel="icon" href="Venus.ico">
+  <style>
+    /* WINDOWS 7 / NATIVE DESKTOP THEME */
+    :root {
+      --win-bg: #d4d0c8;
+      --win-btn-bg: linear-gradient(180deg, #f2f2f2 0%, #e0e0e0 50%, #d4d4d4 50%, #e6e6e6 100%);
+      --win-btn-border: #707070;
+      --win-btn-hover: linear-gradient(180deg, #eaf6fd 0%, #d9f0fc 50%, #bee6fd 50%, #a7d9f5 100%);
+      --win-highlight: #003399;
+    }
+
+    body {
+      background: #f0f0f0;
+      font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+      font-size: 12px;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+      min-height: 100vh;
+      box-sizing: border-box;
+    }
+
+    .win-layout {
+      display: flex;
+      gap: 20px;
+      width: 100%;
+      max-width: 1200px;
+      align-items: flex-start;
+    }
+
+    .win-panel {
+      background: #fff;
+      border: 1px solid #999;
+      box-shadow: inset 1px 1px 3px rgba(0, 0, 0, 0.05), 2px 2px 5px rgba(0, 0, 0, 0.1);
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .win-panel-title {
+      background: linear-gradient(90deg, #d9e4f1 0%, #ffffff 100%);
+      padding: 8px 12px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--win-highlight);
+      border-bottom: 1px solid #eee;
+    }
+
+    .win-panel-body {
+      padding: 20px;
+    }
+
+    .left-col {
+      flex: 1;
+    }
+
+    .right-col {
+      width: 400px;
+      position: sticky;
+      top: 20px;
+    }
+
+    /* Form Elements */
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    .form-row {
+      display: flex;
+      gap: 15px;
+    }
+
+    .form-row>.form-group {
+      flex: 1;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 4px;
+      color: #333;
+      font-weight: bold;
+    }
+
+    .win-input,
+    .win-select,
+    .win-textarea {
+      width: 100%;
+      padding: 4px 6px;
+      border: 1px solid #a0a0a0;
+      font-family: "Segoe UI", Tahoma, sans-serif;
+      font-size: 12px;
+      box-sizing: border-box;
+    }
+
+    .win-input:focus,
+    .win-select:focus,
+    .win-textarea:focus {
+      border-color: #3c7fb1;
+      outline: none;
+    }
+
+    .win-textarea {
+      resize: vertical;
+      min-height: 60px;
+    }
+
+    fieldset {
+      border: 1px solid #d0d0d0;
+      padding: 15px;
+      margin-bottom: 20px;
+      border-radius: 3px;
+      background: #fafafa;
+    }
+
+    legend {
+      font-weight: bold;
+      color: var(--win-highlight);
+      background: #fafafa;
+      padding: 0 5px;
+      border: 1px solid #d0d0d0;
+      border-radius: 3px;
+    }
+
+    /* Assessment Questions */
+    .q-card {
+      margin-bottom: 15px;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 15px;
+    }
+
+    .q-title {
+      font-weight: bold;
+      margin-bottom: 2px;
+    }
+
+    .q-desc {
+      color: #666;
+      font-size: 11px;
+      margin-bottom: 8px;
+    }
+
+    .radio-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .radio-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+    }
+
+    /* Buttons */
+    .win-btn {
+      background: var(--win-btn-bg);
+      border: 1px solid var(--win-btn-border);
+      padding: 6px 20px;
+      border-radius: 3px;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8), 0 1px 1px rgba(0, 0, 0, 0.1);
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 12px;
+      color: #000;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .win-btn:hover:not(:disabled) {
+      background: var(--win-btn-hover);
+      border-color: #3c7fb1;
+    }
+
+    .win-btn:disabled {
+      color: #999;
+      cursor: not-allowed;
+    }
+
+    .btn-primary {
+      border-color: #3c7fb1;
+      font-weight: bold;
+    }
+
+    /* Print Report Side */
+    .report-card {
+      background: #fff;
+      padding: 25px;
+      border: 1px solid #999;
+      box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .report-header {
+      border-bottom: 2px solid #333;
+      padding-bottom: 10px;
+      margin-bottom: 15px;
+    }
+
+    .report-title {
+      font-size: 16px;
+      font-weight: bold;
+      text-transform: uppercase;
+      margin: 0;
+    }
+
+    .report-meta {
+      font-size: 10px;
+      color: #666;
+      margin-top: 4px;
+    }
+
+    .report-section {
+      margin-bottom: 15px;
+    }
+
+    .report-section-title {
+      font-weight: bold;
+      color: var(--win-highlight);
+      font-size: 11px;
+      text-transform: uppercase;
+      border-bottom: 1px solid #ccc;
+      margin-bottom: 8px;
+      padding-bottom: 2px;
+    }
+
+    .report-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      margin-bottom: 4px;
+    }
+
+    .report-label {
+      color: #555;
+    }
+
+    .report-value {
+      font-weight: bold;
+      color: #000;
+      text-align: right;
+      max-width: 60%;
+      word-break: break-word;
+    }
+
+    /* Print rules */
+    @media print {
+      body {
+        background: #fff;
+        padding: 0;
+        display: block;
+      }
+
+      .left-col,
+      #printReportBtn {
+        display: none !important;
+      }
+
+      .win-layout {
+        display: block;
+        max-width: none;
+      }
+
+      .right-col {
+        width: 100%;
+        position: static;
+      }
+
+      .report-card {
+        border: none;
+        box-shadow: none;
+        padding: 0;
+      }
+    }
+  </style>
+</head>
+
+<body data-page="new_patient">
+
+  <div class="win-layout">
+
+    <!-- LEFT COLUMN: FORM -->
+    <div class="win-panel left-col">
+      <div class="win-panel-title">Patient Intake Wizard</div>
+      <div class="win-panel-body">
+
+        <div style="margin-bottom: 20px; display: flex; align-items: center; gap: 15px;">
+          <svg viewBox="0 0 48 48" fill="none" width="40" height="40" stroke="#003399" stroke-width="2">
+            <rect x="8" y="8" width="32" height="32" rx="4" fill="#eaf6fd" />
+            <path d="M16 24h16M24 16v16" />
+          </svg>
+          <div>
+            <div style="font-size: 15px; font-weight: bold; color: var(--win-highlight);">Register New Patient</div>
+            <div style="color: #666;">Complete the standardized initial assessment to generate a baseline PEARL therapy
+              protocol.</div>
+          </div>
+        </div>
+
+        <form id="newPatientForm">
+
+          <fieldset>
+            <legend>Step 1: Patient Demographics</legend>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Full Legal Name:</label>
+                <input type="text" id="ptName" class="win-input" required />
+              </div>
+              <div class="form-group">
+                <label>Age (Years):</label>
+                <input type="number" id="ptAge" class="win-input" required />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Primary Diagnosis:</label>
+                <select id="ptCondition" class="win-select" required>
+                  <option value="">Select condition...</option>
+                  <option value="Parkinson's Disease">Parkinson's Disease</option>
+                  <option value="Post-Stroke">Post-Stroke</option>
+                  <option value="Traumatic Brain Injury">Traumatic Brain Injury</option>
+                  <option value="Cerebral Palsy">Cerebral Palsy</option>
+                  <option value="Multiple Sclerosis">Multiple Sclerosis</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Dominant Hand:</label>
+                <select id="ptHand" class="win-select">
+                  <option value="Right">Right</option>
+                  <option value="Left">Left</option>
+                  <option value="Ambidextrous">Ambidextrous</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Clinical Notes (Optional):</label>
+              <textarea id="ptNotes" class="win-textarea"></textarea>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>Step 2: Baseline Motor Protocol</legend>
+
+            <div class="q-card">
+              <div class="q-title">A. Resting Tremor Severity (UPDRS-Based)</div>
+              <div class="q-desc">Assess the amplitude of resting tremor in the upper extremities.</div>
+              <div class="radio-group">
+                <label class="radio-label"><input type="radio" name="q1" value="0" data-label="0 - Absent" required> 0 -
+                  Absent</label>
+                <label class="radio-label"><input type="radio" name="q1" value="1" data-label="1 - Slight/Infrequent"> 1
+                  - Slight and infrequently present</label>
+                <label class="radio-label"><input type="radio" name="q1" value="2" data-label="2 - Mild/Frequent"> 2 -
+                  Mild and present most of the time</label>
+                <label class="radio-label"><input type="radio" name="q1" value="3" data-label="3 - Moderate/Severe"> 3 -
+                  Moderate to Severe</label>
+              </div>
+            </div>
+
+            <div class="q-card">
+              <div class="q-title">B. Upper Extremity Spasticity (Modified Ashworth)</div>
+              <div class="radio-group">
+                <label class="radio-label"><input type="radio" name="q2" value="0" data-label="0 - No increase"
+                    required> 0 - No increase in tone</label>
+                <label class="radio-label"><input type="radio" name="q2" value="1" data-label="1 - Slight catch"> 1 -
+                  Slight catch/release</label>
+                <label class="radio-label"><input type="radio" name="q2" value="2" data-label="2 - Marked increase"> 2 -
+                  More marked increase in tone</label>
+                <label class="radio-label"><input type="radio" name="q2" value="3" data-label="3 - Considerable"> 3 -
+                  Considerable increase in tone</label>
+              </div>
+            </div>
+
+            <div class="q-card">
+              <div class="q-title">C. Bradykinesia / Reaction Speed</div>
+              <div class="radio-group">
+                <label class="radio-label"><input type="radio" name="q3" value="0" data-label="0 - Normal" required> 0 -
+                  Normal</label>
+                <label class="radio-label"><input type="radio" name="q3" value="1" data-label="1 - Slight hesitation"> 1
+                  - Slight slowing/hesitation</label>
+                <label class="radio-label"><input type="radio" name="q3" value="2" data-label="2 - Moderate slowness"> 2
+                  - Moderate slowness</label>
+                <label class="radio-label"><input type="radio" name="q3" value="3" data-label="3 - Severe slowness"> 3 -
+                  Severe slowness/freezing</label>
+              </div>
+            </div>
+
+            <div class="q-card">
+              <div class="q-title">D. Visuomotor Coordination</div>
+              <div class="radio-group">
+                <label class="radio-label"><input type="radio" name="q4" value="0" data-label="0 - Intact" required> 0 -
+                  Intact</label>
+                <label class="radio-label"><input type="radio" name="q4" value="1" data-label="1 - Mild dysmetria"> 1 -
+                  Mild dysmetria</label>
+                <label class="radio-label"><input type="radio" name="q4" value="2" data-label="2 - Moderate dysmetria">
+                  2 - Moderate dysmetria/overshooting</label>
+                <label class="radio-label"><input type="radio" name="q4" value="3" data-label="3 - Severe impairment"> 3
+                  - Severe impairment</label>
+              </div>
+            </div>
+
+            <div class="q-card" style="border-bottom: none;">
+              <div class="q-title">E. Cognitive Impairment Level</div>
+              <div class="radio-group">
+                <label class="radio-label"><input type="radio" name="q5" value="0" data-label="0 - Intact" required> 0 -
+                  Intact</label>
+                <label class="radio-label"><input type="radio" name="q5" value="1" data-label="1 - Mild deficit"> 1 -
+                  Mild memory/attention deficit</label>
+                <label class="radio-label"><input type="radio" name="q5" value="2" data-label="2 - Moderate"> 2 -
+                  Moderate impairment</label>
+                <label class="radio-label"><input type="radio" name="q5" value="3" data-label="3 - Severe"> 3 - Severe
+                  impairment</label>
+              </div>
+            </div>
+
+          </fieldset>
+
+          <div id="resultCard"
+            style="display: none; background: #e8f5e9; border: 1px solid #81c784; padding: 15px; margin-bottom: 20px;">
+            <div style="font-weight: bold; color: #2e7d32; margin-bottom: 5px;">AI Protocol Recommendation</div>
+            <div style="font-size: 20px; font-weight: bold; color: #1b5e20;" id="suggestedLevelDisplay">Level 1</div>
+            <div style="color: #388e3c; margin-bottom: 10px;" id="suggestedLevelNote">Sequential Targeting</div>
+
+            <div style="border-top: 1px solid #a5d6a7; padding-top: 10px; margin-top: 10px;">
+              <label style="color: #1b5e20;">Clinical Override (Optional):</label>
+              <select id="overrideLevel" class="win-select" style="border-color: #81c784;">
+                <option value="auto" selected>Accept AI Recommendation</option>
+                <option value="0">Level 0 — Baseline Orientation</option>
+                <option value="1">Level 1 — Sequential Targeting</option>
+                <option value="2">Level 2 — Random Targeting</option>
+                <option value="3">Level 3 — Working Memory</option>
+                <option value="4">Level 4 — Bilateral Coordination</option>
+                <option value="5">Level 5 — High-Velocity Performance</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="display: flex; justify-content: space-between; border-top: 1px solid #ccc; padding-top: 15px;">
+            <a href="dashboard.html" class="win-btn">Cancel</a>
+            <button type="submit" id="saveStartBtn" class="win-btn btn-primary" disabled>Confirm Intake & Start
+              Session</button>
+          </div>
+
+        </form>
+      </div>
+    </div>
+
+    <!-- RIGHT COLUMN: REPORT PREVIEW -->
+    <div class="right-col">
+      <div class="report-card" id="printArea">
+        <div class="report-header">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <h3 class="report-title">PEARL Intake Report</h3>
+            <button type="button" id="printReportBtn" class="win-btn">Print PDF</button>
+          </div>
+          <div class="report-meta" id="reportDate">Generated: Pending</div>
+        </div>
+
+        <div class="report-section">
+          <div class="report-section-title">Patient Demographics</div>
+          <div class="report-row"><span class="report-label">Name</span><span class="report-value" id="rpName">—</span>
+          </div>
+          <div class="report-row"><span class="report-label">Age</span><span class="report-value" id="rpAge">—</span>
+          </div>
+          <div class="report-row"><span class="report-label">Diagnosis</span><span class="report-value"
+              id="rpCondition">—</span></div>
+          <div class="report-row"><span class="report-label">Hand</span><span class="report-value" id="rpHand">—</span>
+          </div>
+          <div class="report-row"><span class="report-label">Notes</span><span class="report-value"
+              id="rpNotes">—</span></div>
+        </div>
+
+        <div class="report-section">
+          <div class="report-section-title">Motor Assessment Protocol</div>
+          <div class="report-row"><span class="report-label">Tremor</span><span class="report-value" id="rpQ1">—</span>
+          </div>
+          <div class="report-row"><span class="report-label">Spasticity</span><span class="report-value"
+              id="rpQ2">—</span></div>
+          <div class="report-row"><span class="report-label">Bradykinesia</span><span class="report-value"
+              id="rpQ3">—</span></div>
+          <div class="report-row"><span class="report-label">Coordination</span><span class="report-value"
+              id="rpQ4">—</span></div>
+          <div class="report-row"><span class="report-label">Cognitive</span><span class="report-value"
+              id="rpQ5">—</span></div>
+        </div>
+
+        <div class="report-section" style="margin-bottom: 0; padding-top: 10px; border-top: 2px solid #ccc;">
+          <div class="report-row" style="align-items: center;">
+            <span class="report-label" style="font-weight: bold; text-transform: uppercase;">Assigned Level</span>
+            <span class="report-value" style="font-size: 18px; color: #008800;" id="rpLevel">—</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</body>
+
+</html>

@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Doctor Login — PEARL</title>
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
+  <link rel="icon" href="Venus.ico">
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
+  <script defer src="script.js"></script>
+  <style>
+    /* WINDOWS 7 LOGIN THEME */
+    :root {
+      --win-btn-bg: linear-gradient(180deg, #f2f2f2 0%, #e0e0e0 50%, #d4d4d4 50%, #e6e6e6 100%);
+      --win-btn-border: #707070;
+      --win-btn-hover: linear-gradient(180deg, #eaf6fd 0%, #d9f0fc 50%, #bee6fd 50%, #a7d9f5 100%);
+    }
+
+    body {
+      background: #004e98;
+      background-image: radial-gradient(circle at center, #0066cc 0%, #003366 100%);
+      font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+      font-size: 12px;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+
+    .win-dialog {
+      background: #f0f0f0;
+      border: 1px solid #111;
+      box-shadow: 0 4px 25px rgba(0, 0, 0, 0.6);
+      width: 420px;
+      border-radius: 6px 6px 0 0;
+      overflow: hidden;
+    }
+
+    .win-dialog-titlebar {
+      background: linear-gradient(180deg, #95b3d7 0%, #547cc4 50%, #3e68b8 50%, #5c85cc 100%);
+      color: white;
+      padding: 6px 10px;
+      font-weight: bold;
+      font-size: 13px;
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 1px solid #111;
+    }
+
+    .win-dialog-content {
+      padding: 20px;
+      background: #f0f0f0;
+      border-top: 1px solid #fff;
+    }
+
+    .win-dialog-inner {
+      background: #fff;
+      border: 1px solid #a0a0a0;
+      padding: 20px;
+      display: flex;
+      gap: 20px;
+    }
+
+    .win-input {
+      width: 100%;
+      padding: 5px 6px;
+      border: 1px solid #a0a0a0;
+      font-family: inherit;
+      font-size: 12px;
+      margin-bottom: 12px;
+      box-sizing: border-box;
+    }
+
+    .win-input:focus {
+      border-color: #3c7fb1;
+      outline: none;
+    }
+
+    .win-btn {
+      background: var(--win-btn-bg);
+      border: 1px solid var(--win-btn-border);
+      padding: 5px 25px;
+      border-radius: 3px;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8), 0 1px 1px rgba(0, 0, 0, 0.1);
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 12px;
+      color: #000;
+    }
+
+    .win-btn:hover {
+      background: var(--win-btn-hover);
+      border-color: #3c7fb1;
+    }
+
+    .win-btn:active {
+      background: linear-gradient(180deg, #d4d4d4 0%, #e0e0e0 100%);
+      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
+    }
+
+    .error-text {
+      color: #cc0000;
+      font-size: 11px;
+      margin-bottom: 10px;
+      display: none;
+      font-weight: bold;
+    }
+  </style>
+</head>
+
+<body data-page="login">
+  <div class="win-dialog">
+    <div class="win-dialog-titlebar">
+      <span>PEARL Authentication</span>
+      <span style="font-family: Webdings; cursor: pointer;">r</span>
+    </div>
+    <div class="win-dialog-content">
+      <div class="win-dialog-inner">
+        <div>
+          <svg viewBox="0 0 48 48" fill="none" width="48" height="48" stroke="#003399" stroke-width="2">
+            <rect x="8" y="12" width="32" height="24" rx="2" fill="#eaf6fd" />
+            <path d="M24 12V24L32 30" />
+            <circle cx="24" cy="24" r="5" fill="#003399" />
+          </svg>
+        </div>
+        <div style="flex: 1;">
+          <div style="color: #003399; font-size: 15px; font-weight: bold; margin-bottom: 5px;">Sign In to PEARL Database
+          </div>
+          <div style="color: #666; margin-bottom: 15px;">Please enter your clinical credentials to continue.</div>
+
+          <form id="loginForm" autocomplete="off">
+            <input style="display:none" type="email" name="fakeusernameremembered" />
+            <input style="display:none" type="password" name="fakepasswordremembered" />
+
+            <label style="display: block; margin-bottom: 3px;">Username or Email:</label>
+            <input type="email" id="email" class="win-input" required autocomplete="new-password" />
+
+            <label style="display: block; margin-bottom: 3px;">Password:</label>
+            <input type="password" id="password" class="win-input" required autocomplete="new-password" />
+
+            <div id="loginError" class="error-text"></div>
+
+            <div style="text-align: right; margin-top: 10px; border-top: 1px solid #eee; padding-top: 15px;">
+              <button type="submit" class="win-btn" style="font-weight: bold; border-color: #3c7fb1;">OK</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>
