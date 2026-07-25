@@ -96,7 +96,7 @@ Firebase-backed web app covering the full session workflow — doctor login, pre
 **Data:** Two datasets were used across development:
 
 - **Synthetic dataset** (~1,600 samples) — generated early on to validate the modeling approach and pipeline design before real clinical data collection began.
-- **Real clinical dataset** (55 samples, 11 held out for testing) — collected from actual patient rehabilitation sessions under physiotherapist supervision. The real-data sample size is currently limited by patient consent constraints, which restricts how much clinical data could be collected within the project timeline.
+- **Real clinical dataset** (55 samples, 11 held out for testing) — collected from actual patient rehabilitation sessions under physiotherapist supervision. The real-data sample size is currently limited by patient consent constraints, which restricts how much clinical data could be collected within the project timeline. The project is still under upgrades for more features and more real time clinical data is being collected to make the models more robust.
 
 **Approach:**
 - Feature engineering from raw session logs (18+ features: reaction time trend, fatigue index, per-target timing)
@@ -122,6 +122,6 @@ The synthetic-data run served as an early sanity check that the feature set and 
 
 ## Tech Stack
 
-**Hardware:** Arduino, C++, Hall-effect sensors, multiplexers, shift registers
+**Hardware:** Arduino, embedded C++, Hall-effect sensors, multiplexers, shift registers
 **Frontend:** HTML/CSS/JavaScript, Firebase (Auth + Firestore), Web Serial API
-**ML:** Python, scikit-learn, imbalanced-learn (SMOTE), pandas, matplotlib
+**ML:** Python, scikit-learn, pandas, matplotlib
